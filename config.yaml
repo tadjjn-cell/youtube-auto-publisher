@@ -6,6 +6,7 @@ telegram:
 youtube:
   category_id: "22" # 22 = People & Blogs. See https://developers.google.com/youtube/v3/docs/videoCategories/list
   privacy_status: "public" # public | unlisted | private
+  website_link: "https://www.robloxcodes.site" # Added as a call-to-action line at the end of every description. Leave "" to disable.
 
 # AI Configuration (Groq, free tier)
 ai:
@@ -14,6 +15,7 @@ ai:
 # Keyword research
 keywords:
   max_keywords: 15
+  max_trending: 10 # Google Trends rising/top related queries to feed the AI
 
 # Safety limits
 limits:
