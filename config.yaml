@@ -1,0 +1,25 @@
+# Telegram (secrets like API id/hash/session live in .env or GitHub Secrets)
+telegram:
+  source_chat: "me" # "me" = your own Saved Messages. Or "@your_channel_username".
+
+# YouTube upload defaults
+youtube:
+  category_id: "22" # 22 = People & Blogs. See https://developers.google.com/youtube/v3/docs/videoCategories/list
+  privacy_status: "public" # public | unlisted | private
+
+# AI Configuration (Groq, free tier)
+ai:
+  text_model: "openai/gpt-oss-120b"
+
+# Keyword research
+keywords:
+  max_keywords: 15
+
+# Safety limits
+limits:
+  max_uploads_per_run: 2 # Keep low: YouTube's free API quota allows ~6 uploads/day total
+
+# Paths (relative to project root)
+paths:
+  state_file: "data/state.json"
+  downloads_dir: "downloads"
