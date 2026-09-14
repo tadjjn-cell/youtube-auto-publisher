@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import time
 
 from src.config import load_config
 from src.state import load_state, save_state
@@ -36,12 +37,22 @@ async def main() -> None:
     state_path = config.get("paths", {}).get("state_file", "data/state.json")
     state = load_state(state_path)
 
+    post_interval_hours = config.get("schedule", {}).get("post_interval_hours", 0)
+    if post_interval_hours > 0:
+        elapsed_hours = (time.time() - state.get("last_upload_time", 0)) / 3600
+        if elapsed_hours < post_interval_hours:
+            remaining = post_interval_hours - elapsed_hours
+            logger.info(f"Drip-feed schedule active: next post in {remaining:.1f}h. Skipping this run.")
+            return
+        fetch_limit = 1  # one video per due slot, to enforce spacing precisely
+    else:
+        fetch_limit = config.get("limits", {}).get("max_uploads_per_run", 2)
+
     client = get_telegram_client(config)
     await client.start()
 
     try:
-        max_per_run = config.get("limits", {}).get("max_uploads_per_run", 2)
-        videos = await fetch_new_videos(client, config, state, limit=max_per_run)
+        videos = await fetch_new_videos(client, config, state, limit=fetch_limit)
 
         if not videos:
             logger.info("No new videos found.")
@@ -86,6 +97,7 @@ async def main() -> None:
                     f"⚠️ Failed to publish video (message {video['message_id']}): {e}",
                 )
             finally:
+                state["last_upload_time"] = time.time()
                 if os.path.exists(video["file_path"]):
                     os.remove(video["file_path"])
 
