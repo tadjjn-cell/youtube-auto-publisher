@@ -13,6 +13,29 @@ def _is_video_message(message) -> bool:
     return False
 
 
+def _resolve_caption(raw_caption: str, config: dict) -> tuple[bool, str]:
+    """
+    Decide whether this video belongs to this pipeline, and return its cleaned caption.
+    Lets several channels share the same Telegram source chat: a "require_tag" pipeline
+    only takes captions starting with that tag (tag stripped off); other pipelines list
+    that tag in "exclude_tags" so they skip it and leave it for the tagged pipeline.
+    """
+    telegram_config = config.get("telegram", {})
+    require_tag = telegram_config.get("require_tag", "")
+    exclude_tags = telegram_config.get("exclude_tags", [])
+
+    if require_tag:
+        if not raw_caption.lower().startswith(require_tag.lower()):
+            return False, raw_caption
+        return True, raw_caption[len(require_tag):].strip(" :-")
+
+    for tag in exclude_tags:
+        if raw_caption.lower().startswith(tag.lower()):
+            return False, raw_caption
+
+    return True, raw_caption
+
+
 async def fetch_new_videos(client: TelegramClient, config: dict, state: dict, limit: int) -> list[dict]:
     """
     Scan the source chat for video messages newer than the last processed one.
@@ -31,6 +54,10 @@ async def fetch_new_videos(client: TelegramClient, config: dict, state: dict, li
 
     async for message in client.iter_messages(source_chat, min_id=last_id, reverse=True):
         if _is_video_message(message):
+            should_process, caption = _resolve_caption((message.text or "").strip(), config)
+            if not should_process:
+                highest_seen_id = message.id
+                continue
             if len(results) >= limit:
                 logger.info(f"Reached per-run limit ({limit}); message {message.id} will be picked up next run.")
                 break
@@ -43,7 +70,7 @@ async def fetch_new_videos(client: TelegramClient, config: dict, state: dict, li
             results.append(
                 {
                     "message_id": message.id,
-                    "caption": (message.text or "").strip(),
+                    "caption": caption,
                     "file_path": file_path,
                 }
             )

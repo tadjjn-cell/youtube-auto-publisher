@@ -1,6 +1,7 @@
 # Telegram (secrets like API id/hash/session live in .env or GitHub Secrets)
 telegram:
   source_chat: "me" # "me" = your own Saved Messages. Or "@your_channel_username".
+  exclude_tags: ["ch2:"] # Skip captions meant for other channels sharing this same chat (see the sibling project's require_tag).
 
 # YouTube upload defaults
 youtube:
