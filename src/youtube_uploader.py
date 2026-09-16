@@ -21,6 +21,24 @@ def get_youtube_client(config: dict):
     return build("youtube", "v3", credentials=creds)
 
 
+def _sanitize_tags(tags: list[str], max_total_chars: int = 460) -> list[str]:
+    """
+    YouTube rejects tags containing commas (it uses them as a separator) and caps
+    the combined length of all tags at 500 chars -- stay under that with margin.
+    """
+    cleaned = []
+    total = 0
+    for tag in tags:
+        tag = tag.replace(",", " ").strip()
+        if not tag:
+            continue
+        if total + len(tag) + 1 > max_total_chars:
+            break
+        cleaned.append(tag)
+        total += len(tag) + 1
+    return cleaned
+
+
 def upload_video(
     youtube,
     file_path: str,
@@ -34,7 +52,7 @@ def upload_video(
         "snippet": {
             "title": title,
             "description": description,
-            "tags": tags,
+            "tags": _sanitize_tags(tags),
             "categoryId": category_id,
         },
         "status": {
