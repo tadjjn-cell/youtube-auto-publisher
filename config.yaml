@@ -1,7 +1,7 @@
 # Telegram (secrets like API id/hash/session live in .env or GitHub Secrets)
 telegram:
   source_chat: "me" # "me" = your own Saved Messages. Or "@your_channel_username".
-  exclude_tags: ["ch2:", "ig:"] # Skip captions meant for other pipelines sharing this same chat (see their require_tag).
+  exclude_tags: ["ch2:", "ig:", "ig2:"] # Skip captions meant for other pipelines sharing this same chat (see their require_tag).
 
 # YouTube upload defaults
 youtube:
